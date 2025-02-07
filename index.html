@@ -138,9 +138,9 @@
             notification.classList.add("show");
             notification.innerText = "Controller Connected";
 
-            // Left and Right D-pad or Left Stick for navigation
-            if (gamepad.axes[0] > 0.5) moveSelectionRight();
-            if (gamepad.axes[0] < -0.5) moveSelectionLeft();
+            // D-pad or Left Stick for navigation
+            if (gamepad.axes[0] > 0.5 || gamepad.buttons[14].pressed) moveSelectionRight();
+            if (gamepad.axes[0] < -0.5 || gamepad.buttons[15].pressed) moveSelectionLeft();
 
             // X button to open game
             if (gamepad.buttons[0].pressed && !gameOpen) {
