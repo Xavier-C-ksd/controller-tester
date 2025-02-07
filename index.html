@@ -82,19 +82,27 @@
             apps[selectedAppIndex].classList.add('selected');
         };
 
-        // Handle controller navigation using left analog stick and buttons
+        // Handle controller navigation using D-pad and analog stick
         const navigateWithController = () => {
             const gamepads = navigator.getGamepads();
             const gp = gamepads[0];
 
             if (gp) {
-                // Using left analog stick for navigation
+                // Handle D-pad navigation (buttons 12-15)
+                if (gp.buttons[12].pressed && selectedAppIndex > 0) {  // D-pad Left
+                    selectedAppIndex--;
+                }
+                if (gp.buttons[13].pressed && selectedAppIndex < apps.length - 1) {  // D-pad Right
+                    selectedAppIndex++;
+                }
+
+                // Adjust analog stick navigation with sensitivity
                 const stickX = gp.axes[0];  // Left Stick X-axis
 
-                if (Math.abs(stickX) > 0.3) {
-                    if (stickX < 0 && selectedAppIndex > 0) {  // Left
+                if (Math.abs(stickX) > 0.1) {  // Apply dead zone to analog stick
+                    if (stickX < -0.2 && selectedAppIndex > 0) {  // Left (slow)
                         selectedAppIndex--;
-                    } else if (stickX > 0 && selectedAppIndex < apps.length - 1) {  // Right
+                    } else if (stickX > 0.2 && selectedAppIndex < apps.length - 1) {  // Right (slow)
                         selectedAppIndex++;
                     }
                 }
