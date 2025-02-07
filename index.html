@@ -36,126 +36,116 @@
             align-items: center;
             text-align: center;
             border-radius: 15px;
-            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.4s ease-out;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         .app.highlighted {
             transform: scale(1.1);
             background-color: #555;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
         }
 
-        .app.selected {
-            background-color: #00aaff;
-            color: #000;
-            animation: zoomInOut 0.5s ease-out;
-        }
-
-        @keyframes zoomInOut {
-            0% { transform: scale(1.2); }
-            80% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .app-container {
+        .notification-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 25px;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .notification {
+            background: #444;
+            color: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .ps-menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            color: white;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        }
+
+        .ps-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, -50%) scale(1);
         }
     </style>
 </head>
 <body>
-    <div id="ui" class="app-container">
-        <div class="app" id="app1" data-dir="/apps/app1">App 1</div>
-        <div class="app" id="app2" data-dir="/apps/app2">App 2</div>
-        <div class="app" id="app3" data-dir="/apps/app3">App 3</div>
-        <div class="app" id="app4" data-dir="/apps/app4">App 4</div>
+    <div id="ui">
+        <div class="app">App 1</div>
+        <div class="app">App 2</div>
+        <div class="app">App 3</div>
     </div>
+    
+    <div class="notification-container" id="notifications"></div>
+    <div class="ps-menu" id="psMenu">PS Menu</div>
 
     <script>
-        const apps = document.querySelectorAll('.app');
-        let selectedAppIndex = 0;
-        let lastInputTime = 0;  // Track the last time a button press was registered
-        const inputBufferTime = 100; // 100ms buffer time to prevent rapid input
+        let lastInputTime = 0;
+        const inputBufferTime = 100;
+        let psMenuActive = false;
+        
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.classList.add('notification');
+            notification.textContent = message;
+            document.getElementById('notifications').appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
 
-        // Function to highlight app
-        const highlightApp = () => {
-            apps.forEach(app => app.classList.remove('highlighted'));
-            apps[selectedAppIndex].classList.add('highlighted');
-        };
+        function togglePSMenu() {
+            psMenuActive = !psMenuActive;
+            document.getElementById('psMenu').classList.toggle('active', psMenuActive);
+        }
 
-        // Function to select app and open its directory
-        const selectApp = () => {
-            apps.forEach(app => app.classList.remove('selected'));
-            apps[selectedAppIndex].classList.add('selected');
-
-            // Open app directory in a new tab (simulating with a placeholder path)
-            const appDir = apps[selectedAppIndex].getAttribute('data-dir');
-            window.open(`file://${appDir}`, '_blank');
-        };
-
-        // Handle controller navigation using D-pad and analog stick
-        const navigateWithController = () => {
+        function handleControllerInput() {
             const gamepads = navigator.getGamepads();
+            if (!gamepads[0]) return;
             const gp = gamepads[0];
+            const currentTime = Date.now();
 
-            if (gp) {
-                // Check the current time
-                const currentTime = Date.now();
-
-                // Handle D-pad navigation (buttons 12-15)
-                if (gp.buttons[12].pressed && currentTime - lastInputTime > inputBufferTime && selectedAppIndex > 0) {  // D-pad Up (button 12)
-                    selectedAppIndex--;
-                    lastInputTime = currentTime;
-                }
-                if (gp.buttons[13].pressed && currentTime - lastInputTime > inputBufferTime && selectedAppIndex < apps.length - 1) {  // D-pad Down (button 13)
-                    selectedAppIndex++;
-                    lastInputTime = currentTime;
-                }
-                if (gp.buttons[14].pressed && currentTime - lastInputTime > inputBufferTime && selectedAppIndex > 0) {  // D-pad Left (button 14)
-                    selectedAppIndex--;
-                    lastInputTime = currentTime;
-                }
-                if (gp.buttons[15].pressed && currentTime - lastInputTime > inputBufferTime && selectedAppIndex < apps.length - 1) {  // D-pad Right (button 15)
-                    selectedAppIndex++;
-                    lastInputTime = currentTime;
-                }
-
-                // Adjust analog stick navigation with sensitivity
-                const stickX = gp.axes[0];  // Left Stick X-axis
-
-                if (Math.abs(stickX) > 0.1) {  // Apply dead zone to analog stick
-                    if (stickX < -0.2 && currentTime - lastInputTime > inputBufferTime && selectedAppIndex > 0) {  // Left (slow)
-                        selectedAppIndex--;
-                        lastInputTime = currentTime;
-                    } else if (stickX > 0.2 && currentTime - lastInputTime > inputBufferTime && selectedAppIndex < apps.length - 1) {  // Right (slow)
-                        selectedAppIndex++;
-                        lastInputTime = currentTime;
-                    }
-                }
-
-                // Select app with X button (PlayStation)
-                if (gp.buttons[0].pressed && currentTime - lastInputTime > inputBufferTime) {  // X Button
-                    selectApp();
-                    lastInputTime = currentTime;
-                }
-
-                // Highlight app
-                highlightApp();
+            if (gp.buttons[16].pressed && currentTime - lastInputTime > inputBufferTime) { // PS Button
+                togglePSMenu();
+                lastInputTime = currentTime;
             }
 
-            requestAnimationFrame(navigateWithController);
-        };
+            if (gp.buttons[1].pressed && psMenuActive) { // Circle Button
+                togglePSMenu();
+                lastInputTime = currentTime;
+            }
 
-        // Start the gamepad update loop
-        navigateWithController();
+            requestAnimationFrame(handleControllerInput);
+        }
 
-        // Initialize the highlighted app
-        highlightApp();
-
+        handleControllerInput();
     </script>
 </body>
 </html>
