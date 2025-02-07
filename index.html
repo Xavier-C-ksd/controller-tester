@@ -3,281 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Console UI with Modular Apps</title>
+    <title>Console UI</title>
     <style>
-        body {
-            background-color: #222;
-            color: white;
-            font-family: 'Arial', sans-serif;
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1a1a1a;
+            font-family: 'Arial', sans-serif;
             overflow: hidden;
         }
-        .console-ui {
-            display: grid;
-            grid-template-rows: 1fr auto;
-            grid-template-columns: 1fr;
-            width: 100vw;
-            height: 100vh;
-            gap: 10px;
-            padding: 0;
-            position: relative;
-        }
-        .screen {
-            height: 100%;
-            width: 100%;
-            background-color: #333;
-            border-radius: 10px;
-            position: relative;
+
+        #ui {
             display: flex;
             flex-wrap: wrap;
+            gap: 10px;
             justify-content: center;
-            align-items: center;
-            overflow: hidden;
         }
-        .app-list {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            padding: 20px;
-            z-index: 1;
-        }
-        .app-item {
-            width: 100px;
-            height: 100px;
+
+        .app {
+            background-color: #333;
+            color: #fff;
+            width: 150px;
+            height: 150px;
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #444;
-            border-radius: 5px;
+            text-align: center;
+            border-radius: 10px;
+            transition: transform 0.3s ease, background-color 0.3s ease;
             cursor: pointer;
-            transition: all 0.2s ease;
         }
-        .app-item.selected {
-            background-color: #666;
+
+        .app.highlighted {
             transform: scale(1.1);
-        }
-        .notification {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: #444;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            display: none;
-            opacity: 0;
-            transform: translateX(100%);
-            transition: opacity 0.5s ease, transform 0.5s ease;
-        }
-        .notification.show {
-            display: block;
-            opacity: 1;
-            transform: translateX(0);
-        }
-        #platformer {
-            width: 500px;
-            height: 300px;
             background-color: #555;
-            position: relative;
-            display: none;
         }
-        .player {
-            width: 50px;
-            height: 50px;
-            background-color: #00ff00;
-            position: absolute;
-            bottom: 0;
-            left: 0;
+
+        .app.selected {
+            background-color: #00aaff;
+            color: #000;
+            transform: scale(1.2);
+            animation: zoomOut 0.5s ease;
         }
-        .app-box-transition {
-            animation: zoomInOut 1s ease-out forwards;
-        }
-        @keyframes zoomInOut {
-            0% {
-                transform: scale(0);
-                opacity: 0;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
+
+        @keyframes zoomOut {
+            0% { transform: scale(1.2); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
 <body>
-
-<div class="console-ui">
-    <div class="screen">
-        <div class="app-list" id="appList">
-            <div class="app-item selected" id="app1">Platformer</div>
-            <div class="app-item" id="app2">Puzzle Game</div>
-            <div class="app-item" id="app3">Action Game</div>
-        </div>
+    <div id="ui">
+        <div class="app" id="app1">App 1</div>
+        <div class="app" id="app2">App 2</div>
+        <div class="app" id="app3">App 3</div>
+        <div class="app" id="app4">App 4</div>
     </div>
-    <div class="notification" id="controllerNotification"></div>
-</div>
 
-<script>
-    // Gamepad API setup
-    let controllerConnected = false;
-    let selectedAppIndex = 0;
-    const apps = ["Platformer", "Puzzle Game", "Action Game"];
-    const appElements = document.querySelectorAll(".app-item");
-    const appList = document.getElementById("appList");
+    <script>
+        const apps = document.querySelectorAll('.app');
+        let selectedAppIndex = 0;
 
-    const notification = document.getElementById("controllerNotification");
-    let gameOpen = false;
+        // Function to highlight app
+        const highlightApp = () => {
+            apps.forEach(app => app.classList.remove('highlighted'));
+            apps[selectedAppIndex].classList.add('highlighted');
+        };
 
-    function handleGamepadInput() {
-        const gamepads = navigator.getGamepads();
-        const gamepad = gamepads[0];
+        // Function to select app
+        const selectApp = () => {
+            apps.forEach(app => app.classList.remove('selected'));
+            apps[selectedAppIndex].classList.add('selected');
+        };
 
-        if (gamepad) {
-            controllerConnected = true;
-            notification.classList.add("show");
-            notification.innerText = "Controller Connected";
-
-            // D-pad or Left Stick for navigation
-            if (gamepad.axes[0] > 0.5 || gamepad.buttons[14].pressed) moveSelectionRight();
-            if (gamepad.axes[0] < -0.5 || gamepad.buttons[15].pressed) moveSelectionLeft();
-
-            // X button to open game
-            if (gamepad.buttons[0].pressed && !gameOpen) {
-                openGame();
+        // Handle controller navigation (D-pad or arrow keys)
+        const navigate = (direction) => {
+            if (direction === 'up' && selectedAppIndex > 0) {
+                selectedAppIndex--;
+            } else if (direction === 'down' && selectedAppIndex < apps.length - 1) {
+                selectedAppIndex++;
+            } else if (direction === 'left' && selectedAppIndex % 2 !== 0) {
+                selectedAppIndex--;
+            } else if (direction === 'right' && selectedAppIndex % 2 === 0 && selectedAppIndex < apps.length - 1) {
+                selectedAppIndex++;
             }
+            highlightApp();
+        };
 
-            // PS button to return to console UI
-            if (gamepad.buttons[12].pressed && gameOpen) {
-                closeGame();
-            }
-        }
-    }
-
-    function moveSelectionLeft() {
-        if (selectedAppIndex > 0) {
-            selectedAppIndex--;
-            updateSelection();
-        }
-    }
-
-    function moveSelectionRight() {
-        if (selectedAppIndex < apps.length - 1) {
-            selectedAppIndex++;
-            updateSelection();
-        }
-    }
-
-    function updateSelection() {
-        appElements.forEach((element, index) => {
-            if (index === selectedAppIndex) {
-                element.classList.add("selected");
-            } else {
-                element.classList.remove("selected");
-            }
+        // Event listeners for arrow keys (keyboard control)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') navigate('up');
+            if (e.key === 'ArrowDown') navigate('down');
+            if (e.key === 'ArrowLeft') navigate('left');
+            if (e.key === 'ArrowRight') navigate('right');
+            if (e.key === 'Enter') selectApp();
         });
-    }
 
-    function openGame() {
-        gameOpen = true;
-        appList.style.display = "none";
-        const selectedApp = apps[selectedAppIndex];
-        
-        // Create app box transition
-        const appBox = document.createElement('div');
-        appBox.classList.add("app-box-transition");
-        document.body.appendChild(appBox);
+        // Example for controller (using Gamepad API)
+        const updateControllerInput = () => {
+            const gamepads = navigator.getGamepads();
+            const gp = gamepads[0];
 
-        // Launch selected app
-        if (selectedApp === "Platformer") {
-            startPlatformer();
-        }
+            if (gp) {
+                // Using D-pad for navigation
+                if (gp.dpadUp) navigate('up');
+                if (gp.dpadDown) navigate('down');
+                if (gp.dpadLeft) navigate('left');
+                if (gp.dpadRight) navigate('right');
 
-        setTimeout(() => {
-            appBox.style.display = "none";
-        }, 1000);
-    }
-
-    function closeGame() {
-        gameOpen = false;
-        appList.style.display = "flex";
-        console.log("Closing game and returning to UI...");
-        notification.classList.remove("show");
-    }
-
-    function handleKeyboardInput(e) {
-        if (!gameOpen) {
-            if (e.key === "ArrowLeft") {
-                moveSelectionLeft();
+                // Select app with A button (Xbox / PS controller)
+                if (gp.buttons[0].pressed) selectApp();
             }
-            if (e.key === "ArrowRight") {
-                moveSelectionRight();
-            }
-            if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
-                openGame();
-            }
-        }
 
-        if (gameOpen && e.ctrlKey && e.key === "Escape") {
-            closeGame();
-        }
-    }
+            requestAnimationFrame(updateControllerInput);
+        };
 
-    document.addEventListener("keydown", handleKeyboardInput);
+        // Start the gamepad update loop
+        updateControllerInput();
 
-    // Gamepad connection detection
-    window.addEventListener("gamepadconnected", () => {
-        console.log("Controller connected");
-        controllerConnected = true;
-    });
-
-    window.addEventListener("gamepaddisconnected", () => {
-        console.log("Controller disconnected");
-        controllerConnected = false;
-        notification.classList.remove("show");
-        notification.innerText = "Controller Disconnected";
-        setTimeout(() => {
-            notification.classList.remove("show");
-        }, 5000);
-    });
-
-    function startPlatformer() {
-        const platformerDiv = document.createElement("div");
-        platformerDiv.id = "platformer";
-        document.body.appendChild(platformerDiv);
-        
-        const player = document.createElement("div");
-        player.classList.add("player");
-        platformerDiv.appendChild(player);
-
-        let playerPosX = 0;
-        let playerPosY = 0;
-        let playerSpeed = 5;
-
-        // Platformer Controls (WASD or Arrow keys)
-        function movePlayer(e) {
-            if (e.key === "ArrowLeft" || e.key === "a") playerPosX -= playerSpeed;
-            if (e.key === "ArrowRight" || e.key === "d") playerPosX += playerSpeed;
-            if (e.key === "ArrowUp" || e.key === "w") playerPosY += playerSpeed;
-            if (e.key === "ArrowDown" || e.key === "s") playerPosY -= playerSpeed;
-
-            player.style.left = `${playerPosX}px`;
-            player.style.bottom = `${playerPosY}px`;
-        }
-
-        document.addEventListener("keydown", movePlayer);
-    }
-
-    function gameLoop() {
-        if (controllerConnected) {
-            handleGamepadInput();
-        }
-        requestAnimationFrame(gameLoop);
-    }
-
-    gameLoop(); // Start the game loop
-
-</script>
-
+        // Initialize the highlighted app
+        highlightApp();
+    </script>
 </body>
 </html>
