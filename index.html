@@ -23,9 +23,7 @@
 
         #ui {
             display: flex;
-            flex-wrap: wrap;
             gap: 10px;
-            justify-content: center;
         }
 
         .app {
@@ -84,53 +82,55 @@
             apps[selectedAppIndex].classList.add('selected');
         };
 
-        // Handle controller navigation (D-pad or arrow keys)
-        const navigate = (direction) => {
-            if (direction === 'up' && selectedAppIndex > 0) {
-                selectedAppIndex--;
-            } else if (direction === 'down' && selectedAppIndex < apps.length - 1) {
-                selectedAppIndex++;
-            } else if (direction === 'left' && selectedAppIndex % 2 !== 0) {
-                selectedAppIndex--;
-            } else if (direction === 'right' && selectedAppIndex % 2 === 0 && selectedAppIndex < apps.length - 1) {
-                selectedAppIndex++;
-            }
-            highlightApp();
-        };
-
-        // Event listeners for arrow keys (keyboard control)
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowUp') navigate('up');
-            if (e.key === 'ArrowDown') navigate('down');
-            if (e.key === 'ArrowLeft') navigate('left');
-            if (e.key === 'ArrowRight') navigate('right');
-            if (e.key === 'Enter') selectApp();
-        });
-
-        // Example for controller (using Gamepad API)
-        const updateControllerInput = () => {
+        // Handle controller navigation using left analog stick and buttons
+        const navigateWithController = () => {
             const gamepads = navigator.getGamepads();
             const gp = gamepads[0];
 
             if (gp) {
-                // Using D-pad for navigation
-                if (gp.dpadUp) navigate('up');
-                if (gp.dpadDown) navigate('down');
-                if (gp.dpadLeft) navigate('left');
-                if (gp.dpadRight) navigate('right');
+                // Using left analog stick for navigation
+                const stickX = gp.axes[0];  // Left Stick X-axis
 
-                // Select app with A button (Xbox / PS controller)
-                if (gp.buttons[0].pressed) selectApp();
+                if (Math.abs(stickX) > 0.3) {
+                    if (stickX < 0 && selectedAppIndex > 0) {  // Left
+                        selectedAppIndex--;
+                    } else if (stickX > 0 && selectedAppIndex < apps.length - 1) {  // Right
+                        selectedAppIndex++;
+                    }
+                }
+
+                // Select app with X button (PlayStation)
+                if (gp.buttons[0].pressed) selectApp();  // X Button
+
+                // Highlight app
+                highlightApp();
             }
 
-            requestAnimationFrame(updateControllerInput);
+            requestAnimationFrame(navigateWithController);
         };
 
         // Start the gamepad update loop
-        updateControllerInput();
+        navigateWithController();
 
         // Initialize the highlighted app
         highlightApp();
+
+        // Keyboard control for backup (in case gamepad is not working)
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') navigateWithKeyboard('left');
+            if (e.key === 'ArrowRight') navigateWithKeyboard('right');
+            if (e.key === 'Enter') selectApp();
+        });
+
+        // Keyboard navigation logic
+        const navigateWithKeyboard = (direction) => {
+            if (direction === 'left' && selectedAppIndex > 0) {
+                selectedAppIndex--;
+            } else if (direction === 'right' && selectedAppIndex < apps.length - 1) {
+                selectedAppIndex++;
+            }
+            highlightApp();
+        };
     </script>
 </body>
 </html>
