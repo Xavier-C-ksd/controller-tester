@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controller Haptics Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #1e1e1e;
+            color: white;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: #292929;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            background: #0078D7;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #005a9e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Controller Haptics Tester</h1>
+        <p>Connect a game controller and test its vibration and adaptive triggers.</p>
+        <button onclick="testHaptics()">Test Haptics</button>
+        <p id="status">Waiting for controller...</p>
+    </div>
+    
+    <script>
+        window.addEventListener("gamepadconnected", (event) => {
+            document.getElementById("status").innerText = `Controller Connected: ${event.gamepad.id}`;
+        });
+
+        function testHaptics() {
+            const gamepad = navigator.getGamepads()[0];
+            if (gamepad && gamepad.hapticActuators.length > 0) {
+                gamepad.hapticActuators[0].playEffect("dual-rumble", {
+                    startDelay: 0,
+                    duration: 1000,
+                    strongMagnitude: 1.0,
+                    weakMagnitude: 0.5,
+                });
+                document.getElementById("status").innerText = "Haptics Activated!";
+            } else {
+                document.getElementById("status").innerText = "No compatible haptic feedback found.";
+            }
+        }
+    </script>
+</body>
+</html>
