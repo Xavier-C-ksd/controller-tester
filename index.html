@@ -69,27 +69,6 @@
             opacity: 1;
             transform: translateX(0);
         }
-
-        .ps-menu {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.8);
-            background: rgba(0, 0, 0, 0.9);
-            padding: 20px;
-            border-radius: 15px;
-            color: white;
-            text-align: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-        }
-
-        .ps-menu.active {
-            opacity: 1;
-            visibility: visible;
-            transform: translate(-50%, -50%) scale(1);
-        }
     </style>
 </head>
 <body>
@@ -100,12 +79,10 @@
     </div>
     
     <div class="notification-container" id="notifications"></div>
-    <div class="ps-menu" id="psMenu">PS Menu</div>
 
     <script>
         let lastInputTime = 0;
         const inputBufferTime = 100;
-        let psMenuActive = false;
         
         function showNotification(message) {
             const notification = document.createElement('div');
@@ -120,32 +97,6 @@
                 setTimeout(() => notification.remove(), 500);
             }, 3000);
         }
-
-        function togglePSMenu() {
-            psMenuActive = !psMenuActive;
-            document.getElementById('psMenu').classList.toggle('active', psMenuActive);
-        }
-
-        function handleControllerInput() {
-            const gamepads = navigator.getGamepads();
-            if (!gamepads[0]) return;
-            const gp = gamepads[0];
-            const currentTime = Date.now();
-
-            if (gp.buttons[16].pressed && currentTime - lastInputTime > inputBufferTime) { // PS Button
-                togglePSMenu();
-                lastInputTime = currentTime;
-            }
-
-            if (gp.buttons[1].pressed && psMenuActive) { // Circle Button
-                togglePSMenu();
-                lastInputTime = currentTime;
-            }
-
-            requestAnimationFrame(handleControllerInput);
-        }
-
-        handleControllerInput();
     </script>
 </body>
 </html>
