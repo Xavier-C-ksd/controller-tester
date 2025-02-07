@@ -40,6 +40,7 @@
         <h1>Controller Haptics Tester</h1>
         <p>Connect a game controller and test its vibration and adaptive triggers.</p>
         <button onclick="testHaptics()">Test Haptics</button>
+        <button onclick="changeLEDColor()">Change LED Color</button>
         <p id="status">Waiting for controller...</p>
     </div>
     
@@ -71,6 +72,24 @@
                 }
             }
             document.getElementById("status").innerText = "No compatible haptic feedback found.";
+        }
+
+        async function changeLEDColor() {
+            try {
+                const devices = await navigator.hid.requestDevice({ filters: [{ vendorId: 0x054C }] });
+                if (devices.length === 0) {
+                    document.getElementById("status").innerText = "No compatible device found.";
+                    return;
+                }
+                
+                const device = devices[0];
+                await device.open();
+                const colorCommand = new Uint8Array([0x05, 0xFF, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00]); // Example: Set LED to blue
+                await device.sendReport(0x11, colorCommand);
+                document.getElementById("status").innerText = "LED Color Changed!";
+            } catch (error) {
+                document.getElementById("status").innerText = "Error changing LED: " + error;
+            }
         }
     </script>
 </body>
