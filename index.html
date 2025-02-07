@@ -16,54 +16,63 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #1a1a1a;
+            background-color: #121212;
             font-family: 'Arial', sans-serif;
             overflow: hidden;
         }
 
         #ui {
             display: flex;
-            gap: 10px;
+            gap: 30px;
         }
 
         .app {
             background-color: #333;
             color: #fff;
-            width: 150px;
-            height: 150px;
+            width: 180px;
+            height: 180px;
             display: flex;
             justify-content: center;
             align-items: center;
             text-align: center;
-            border-radius: 10px;
-            transition: transform 0.3s ease, background-color 0.3s ease;
+            border-radius: 15px;
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.4s ease-out;
             cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
 
         .app.highlighted {
             transform: scale(1.1);
             background-color: #555;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
         }
 
         .app.selected {
             background-color: #00aaff;
             color: #000;
             transform: scale(1.2);
-            animation: zoomOut 0.5s ease;
+            animation: zoomOut 0.5s ease-out;
         }
 
         @keyframes zoomOut {
             0% { transform: scale(1.2); }
             100% { transform: scale(1); }
         }
+
+        .app-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+        }
     </style>
 </head>
 <body>
-    <div id="ui">
-        <div class="app" id="app1">App 1</div>
-        <div class="app" id="app2">App 2</div>
-        <div class="app" id="app3">App 3</div>
-        <div class="app" id="app4">App 4</div>
+    <div id="ui" class="app-container">
+        <div class="app" id="app1" data-dir="/apps/app1">App 1</div>
+        <div class="app" id="app2" data-dir="/apps/app2">App 2</div>
+        <div class="app" id="app3" data-dir="/apps/app3">App 3</div>
+        <div class="app" id="app4" data-dir="/apps/app4">App 4</div>
     </div>
 
     <script>
@@ -82,6 +91,10 @@
         const selectApp = () => {
             apps.forEach(app => app.classList.remove('selected'));
             apps[selectedAppIndex].classList.add('selected');
+
+            // Open app directory in a new tab (simulating with a placeholder path)
+            const appDir = apps[selectedAppIndex].getAttribute('data-dir');
+            window.open(`file://${appDir}`, '_blank');
         };
 
         // Handle controller navigation using D-pad and analog stick
@@ -143,28 +156,6 @@
         // Initialize the highlighted app
         highlightApp();
 
-        // Keyboard control for backup (in case gamepad is not working)
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') navigateWithKeyboard('left');
-            if (e.key === 'ArrowRight') navigateWithKeyboard('right');
-            if (e.key === 'ArrowUp') navigateWithKeyboard('up');
-            if (e.key === 'ArrowDown') navigateWithKeyboard('down');
-            if (e.key === 'Enter') selectApp();
-        });
-
-        // Keyboard navigation logic
-        const navigateWithKeyboard = (direction) => {
-            if (direction === 'left' && selectedAppIndex > 0) {
-                selectedAppIndex--;
-            } else if (direction === 'right' && selectedAppIndex < apps.length - 1) {
-                selectedAppIndex++;
-            } else if (direction === 'up' && selectedAppIndex > 0) {
-                selectedAppIndex--;
-            } else if (direction === 'down' && selectedAppIndex < apps.length - 1) {
-                selectedAppIndex++;
-            }
-            highlightApp();
-        };
     </script>
 </body>
 </html>
