@@ -3,94 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controller Haptics Tester</title>
+    <title>Console UI with Modular Apps</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #1e1e1e;
+            background-color: #222;
             color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .console-ui {
+            display: grid;
+            grid-template-rows: 1fr auto;
+            grid-template-columns: 1fr;
+            width: 100vw;
+            height: 100vh;
+            gap: 10px;
             padding: 20px;
         }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-            background: #292929;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        button {
+        .button {
+            background-color: #444;
             padding: 10px 20px;
-            margin: 10px;
             border: none;
-            background: #0078D7;
-            color: white;
-            font-size: 16px;
             border-radius: 5px;
             cursor: pointer;
         }
-        button:hover {
-            background: #005a9e;
+        .screen {
+            height: 80%;
+            background-color: #333;
+            border-radius: 10px;
+            position: relative;
+        }
+        .app-list {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+        }
+        .app-item {
+            padding: 10px;
+            cursor: pointer;
+            margin: 5px;
+            background-color: #444;
+            border-radius: 5px;
+        }
+        .app-item.selected {
+            background-color: #666;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Controller Haptics Tester</h1>
-        <p>Connect a game controller and test its vibration and adaptive triggers.</p>
-        <button onclick="testHaptics()">Test Haptics</button>
-        <button onclick="changeLEDColor()">Change LED Color</button>
-        <p id="status">Waiting for controller...</p>
+
+<div class="console-ui">
+    <div class="screen">
+        <div class="app-list" id="appList">
+            <div class="app-item selected" id="app1">Platformer</div>
+            <div class="app-item" id="app2">Puzzle Game</div>
+            <div class="app-item" id="app3">Action Game</div>
+        </div>
     </div>
-    
-    <script>
-        window.addEventListener("gamepadconnected", (event) => {
-            document.getElementById("status").innerText = `Controller Connected: ${event.gamepad.id}`;
+    <div class="buttons">
+        <button class="button" id="xButton">X</button>
+        <button class="button" id="psButton">PS</button>
+    </div>
+</div>
+
+<script>
+    // Gamepad API setup
+    let controllerConnected = false;
+    let selectedAppIndex = 0;
+    const apps = ["Platformer", "Puzzle Game", "Action Game"];
+    const appElements = document.querySelectorAll(".app-item");
+    const appList = document.getElementById("appList");
+
+    const xButton = document.getElementById("xButton");
+    const psButton = document.getElementById("psButton");
+
+    let gameOpen = false;
+
+    function handleGamepadInput() {
+        const gamepads = navigator.getGamepads();
+        const gamepad = gamepads[0];
+
+        if (gamepad) {
+            controllerConnected = true;
+            // D-pad or Left Stick for navigation
+            if (gamepad.axes[1] > 0.5) moveSelectionDown();
+            if (gamepad.axes[1] < -0.5) moveSelectionUp();
+
+            // X button to open game
+            if (gamepad.buttons[0].pressed && !gameOpen) {
+                openGame();
+            }
+
+            // PS button to return to console UI
+            if (gamepad.buttons[12].pressed && gameOpen) {
+                closeGame();
+            }
+        }
+    }
+
+    function moveSelectionUp() {
+        if (selectedAppIndex > 0) {
+            selectedAppIndex--;
+            updateSelection();
+        }
+    }
+
+    function moveSelectionDown() {
+        if (selectedAppIndex < apps.length - 1) {
+            selectedAppIndex++;
+            updateSelection();
+        }
+    }
+
+    function updateSelection() {
+        appElements.forEach((element, index) => {
+            if (index === selectedAppIndex) {
+                element.classList.add("selected");
+            } else {
+                element.classList.remove("selected");
+            }
         });
+    }
 
-        function testHaptics() {
-            const gamepads = navigator.getGamepads();
-            if (!gamepads) {
-                document.getElementById("status").innerText = "No gamepads detected.";
-                return;
+    function openGame() {
+        gameOpen = true;
+        console.log(`Opening ${apps[selectedAppIndex]}...`);
+        appList.style.display = "none";
+        // Add game-specific behavior for opening here
+    }
+
+    function closeGame() {
+        gameOpen = false;
+        appList.style.display = "flex";
+        console.log("Closing game and returning to UI...");
+    }
+
+    function handleKeyboardInput(e) {
+        if (!gameOpen) {
+            if (e.key === "ArrowUp") {
+                moveSelectionUp();
             }
-            
-            for (let gamepad of gamepads) {
-                if (gamepad && gamepad.hapticActuators && gamepad.hapticActuators.length > 0) {
-                    gamepad.hapticActuators[0].playEffect("dual-rumble", {
-                        startDelay: 0,
-                        duration: 1000,
-                        strongMagnitude: 1.0,
-                        weakMagnitude: 0.5,
-                    }).then(() => {
-                        document.getElementById("status").innerText = "Haptics Activated!";
-                    }).catch(err => {
-                        document.getElementById("status").innerText = "Error triggering haptics: " + err;
-                    });
-                    return;
-                }
+            if (e.key === "ArrowDown") {
+                moveSelectionDown();
             }
-            document.getElementById("status").innerText = "No compatible haptic feedback found.";
+            if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+                openGame();
+            }
         }
 
-        async function changeLEDColor() {
-            try {
-                const devices = await navigator.hid.requestDevice({ filters: [{ vendorId: 0x054C }] });
-                if (devices.length === 0) {
-                    document.getElementById("status").innerText = "No compatible device found.";
-                    return;
-                }
-                
-                const device = devices[0];
-                await device.open();
-                const colorCommand = new Uint8Array([0x05, 0xFF, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00]); // Example: Set LED to blue
-                await device.sendReport(0x11, colorCommand);
-                document.getElementById("status").innerText = "LED Color Changed!";
-            } catch (error) {
-                document.getElementById("status").innerText = "Error changing LED: " + error;
-            }
+        if (gameOpen && e.ctrlKey && e.key === "Escape") {
+            closeGame();
         }
-    </script>
+    }
+
+    document.addEventListener("keydown", handleKeyboardInput);
+
+    // Gamepad connection detection
+    window.addEventListener("gamepadconnected", () => {
+        console.log("Controller connected");
+        controllerConnected = true;
+    });
+
+    window.addEventListener("gamepaddisconnected", () => {
+        console.log("Controller disconnected");
+        controllerConnected = false;
+    });
+
+    function gameLoop() {
+        if (controllerConnected) {
+            handleGamepadInput();
+        }
+        requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop(); // Start the game loop
+
+</script>
+
 </body>
 </html>
