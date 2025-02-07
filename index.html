@@ -89,10 +89,16 @@
 
             if (gp) {
                 // Handle D-pad navigation (buttons 12-15)
-                if (gp.buttons[12].pressed && selectedAppIndex > 0) {  // D-pad Left
+                if (gp.buttons[12].pressed && selectedAppIndex > 0) {  // D-pad Up (button 12)
                     selectedAppIndex--;
                 }
-                if (gp.buttons[13].pressed && selectedAppIndex < apps.length - 1) {  // D-pad Right
+                if (gp.buttons[13].pressed && selectedAppIndex < apps.length - 1) {  // D-pad Down (button 13)
+                    selectedAppIndex++;
+                }
+                if (gp.buttons[14].pressed && selectedAppIndex > 0) {  // D-pad Left (button 14)
+                    selectedAppIndex--;
+                }
+                if (gp.buttons[15].pressed && selectedAppIndex < apps.length - 1) {  // D-pad Right (button 15)
                     selectedAppIndex++;
                 }
 
@@ -127,6 +133,8 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft') navigateWithKeyboard('left');
             if (e.key === 'ArrowRight') navigateWithKeyboard('right');
+            if (e.key === 'ArrowUp') navigateWithKeyboard('up');
+            if (e.key === 'ArrowDown') navigateWithKeyboard('down');
             if (e.key === 'Enter') selectApp();
         });
 
@@ -135,6 +143,10 @@
             if (direction === 'left' && selectedAppIndex > 0) {
                 selectedAppIndex--;
             } else if (direction === 'right' && selectedAppIndex < apps.length - 1) {
+                selectedAppIndex++;
+            } else if (direction === 'up' && selectedAppIndex > 0) {
+                selectedAppIndex--;
+            } else if (direction === 'down' && selectedAppIndex < apps.length - 1) {
                 selectedAppIndex++;
             }
             highlightApp();
