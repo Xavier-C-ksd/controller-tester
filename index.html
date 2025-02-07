@@ -23,18 +23,6 @@
             padding: 0;
             position: relative;
         }
-        .buttons {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .button {
-            background-color: #444;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
         .screen {
             height: 100%;
             width: 100%;
@@ -45,12 +33,14 @@
             flex-wrap: wrap;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
         }
         .app-list {
             display: flex;
             justify-content: center;
             gap: 20px;
             padding: 20px;
+            z-index: 1;
         }
         .app-item {
             width: 100px;
@@ -61,9 +51,11 @@
             background-color: #444;
             border-radius: 5px;
             cursor: pointer;
+            transition: all 0.2s ease;
         }
         .app-item.selected {
             background-color: #666;
+            transform: scale(1.1);
         }
         .notification {
             position: absolute;
@@ -74,12 +66,21 @@
             padding: 5px 10px;
             border-radius: 5px;
             display: none;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .notification.show {
+            display: block;
+            opacity: 1;
+            transform: translateX(0);
         }
         #platformer {
             width: 500px;
             height: 300px;
             background-color: #555;
             position: relative;
+            display: none;
         }
         .player {
             width: 50px;
@@ -88,6 +89,19 @@
             position: absolute;
             bottom: 0;
             left: 0;
+        }
+        .app-box-transition {
+            animation: zoomInOut 1s ease-out forwards;
+        }
+        @keyframes zoomInOut {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
     </style>
 </head>
@@ -101,10 +115,6 @@
             <div class="app-item" id="app3">Action Game</div>
         </div>
     </div>
-    <div class="buttons">
-        <button class="button" id="xButton">X</button>
-        <button class="button" id="psButton">PS</button>
-    </div>
     <div class="notification" id="controllerNotification"></div>
 </div>
 
@@ -116,10 +126,7 @@
     const appElements = document.querySelectorAll(".app-item");
     const appList = document.getElementById("appList");
 
-    const xButton = document.getElementById("xButton");
-    const psButton = document.getElementById("psButton");
     const notification = document.getElementById("controllerNotification");
-
     let gameOpen = false;
 
     function handleGamepadInput() {
@@ -128,7 +135,7 @@
 
         if (gamepad) {
             controllerConnected = true;
-            notification.style.display = "block";
+            notification.classList.add("show");
             notification.innerText = "Controller Connected";
 
             // Left and Right D-pad or Left Stick for navigation
@@ -173,19 +180,29 @@
 
     function openGame() {
         gameOpen = true;
-        console.log(`Opening ${apps[selectedAppIndex]}...`);
         appList.style.display = "none";
-        // Launch game
-        if (apps[selectedAppIndex] === "Platformer") {
+        const selectedApp = apps[selectedAppIndex];
+        
+        // Create app box transition
+        const appBox = document.createElement('div');
+        appBox.classList.add("app-box-transition");
+        document.body.appendChild(appBox);
+
+        // Launch selected app
+        if (selectedApp === "Platformer") {
             startPlatformer();
         }
+
+        setTimeout(() => {
+            appBox.style.display = "none";
+        }, 1000);
     }
 
     function closeGame() {
         gameOpen = false;
         appList.style.display = "flex";
         console.log("Closing game and returning to UI...");
-        notification.style.display = "none";
+        notification.classList.remove("show");
     }
 
     function handleKeyboardInput(e) {
@@ -217,7 +234,11 @@
     window.addEventListener("gamepaddisconnected", () => {
         console.log("Controller disconnected");
         controllerConnected = false;
-        notification.style.display = "none";
+        notification.classList.remove("show");
+        notification.innerText = "Controller Disconnected";
+        setTimeout(() => {
+            notification.classList.remove("show");
+        }, 5000);
     });
 
     function startPlatformer() {
