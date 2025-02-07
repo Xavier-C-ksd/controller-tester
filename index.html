@@ -36,7 +36,7 @@
             align-items: center;
             text-align: center;
             border-radius: 15px;
-            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.4s ease-out;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.4s ease-out;
             cursor: pointer;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
@@ -50,12 +50,12 @@
         .app.selected {
             background-color: #00aaff;
             color: #000;
-            transform: scale(1.2);
-            animation: zoomOut 0.5s ease-out;
+            animation: zoomInOut 0.5s ease-out;
         }
 
-        @keyframes zoomOut {
+        @keyframes zoomInOut {
             0% { transform: scale(1.2); }
+            80% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
 
@@ -87,7 +87,7 @@
             apps[selectedAppIndex].classList.add('highlighted');
         };
 
-        // Function to select app
+        // Function to select app and open its directory
         const selectApp = () => {
             apps.forEach(app => app.classList.remove('selected'));
             apps[selectedAppIndex].classList.add('selected');
