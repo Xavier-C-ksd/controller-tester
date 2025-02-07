@@ -49,18 +49,28 @@
         });
 
         function testHaptics() {
-            const gamepad = navigator.getGamepads()[0];
-            if (gamepad && gamepad.hapticActuators.length > 0) {
-                gamepad.hapticActuators[0].playEffect("dual-rumble", {
-                    startDelay: 0,
-                    duration: 1000,
-                    strongMagnitude: 1.0,
-                    weakMagnitude: 0.5,
-                });
-                document.getElementById("status").innerText = "Haptics Activated!";
-            } else {
-                document.getElementById("status").innerText = "No compatible haptic feedback found.";
+            const gamepads = navigator.getGamepads();
+            if (!gamepads) {
+                document.getElementById("status").innerText = "No gamepads detected.";
+                return;
             }
+            
+            for (let gamepad of gamepads) {
+                if (gamepad && gamepad.hapticActuators && gamepad.hapticActuators.length > 0) {
+                    gamepad.hapticActuators[0].playEffect("dual-rumble", {
+                        startDelay: 0,
+                        duration: 1000,
+                        strongMagnitude: 1.0,
+                        weakMagnitude: 0.5,
+                    }).then(() => {
+                        document.getElementById("status").innerText = "Haptics Activated!";
+                    }).catch(err => {
+                        document.getElementById("status").innerText = "Error triggering haptics: " + err;
+                    });
+                    return;
+                }
+            }
+            document.getElementById("status").innerText = "No compatible haptic feedback found.";
         }
     </script>
 </body>
