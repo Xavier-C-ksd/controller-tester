@@ -69,6 +69,8 @@
     <script>
         const apps = document.querySelectorAll('.app');
         let selectedAppIndex = 0;
+        let lastInputTime = 0;  // Track the last time a button press was registered
+        const inputBufferTime = 100; // 100ms buffer time to prevent rapid input
 
         // Function to highlight app
         const highlightApp = () => {
@@ -88,33 +90,45 @@
             const gp = gamepads[0];
 
             if (gp) {
+                // Check the current time
+                const currentTime = Date.now();
+
                 // Handle D-pad navigation (buttons 12-15)
-                if (gp.buttons[12].pressed && selectedAppIndex > 0) {  // D-pad Up (button 12)
+                if (gp.buttons[12].pressed && currentTime - lastInputTime > inputBufferTime && selectedAppIndex > 0) {  // D-pad Up (button 12)
                     selectedAppIndex--;
+                    lastInputTime = currentTime;
                 }
-                if (gp.buttons[13].pressed && selectedAppIndex < apps.length - 1) {  // D-pad Down (button 13)
+                if (gp.buttons[13].pressed && currentTime - lastInputTime > inputBufferTime && selectedAppIndex < apps.length - 1) {  // D-pad Down (button 13)
                     selectedAppIndex++;
+                    lastInputTime = currentTime;
                 }
-                if (gp.buttons[14].pressed && selectedAppIndex > 0) {  // D-pad Left (button 14)
+                if (gp.buttons[14].pressed && currentTime - lastInputTime > inputBufferTime && selectedAppIndex > 0) {  // D-pad Left (button 14)
                     selectedAppIndex--;
+                    lastInputTime = currentTime;
                 }
-                if (gp.buttons[15].pressed && selectedAppIndex < apps.length - 1) {  // D-pad Right (button 15)
+                if (gp.buttons[15].pressed && currentTime - lastInputTime > inputBufferTime && selectedAppIndex < apps.length - 1) {  // D-pad Right (button 15)
                     selectedAppIndex++;
+                    lastInputTime = currentTime;
                 }
 
                 // Adjust analog stick navigation with sensitivity
                 const stickX = gp.axes[0];  // Left Stick X-axis
 
                 if (Math.abs(stickX) > 0.1) {  // Apply dead zone to analog stick
-                    if (stickX < -0.2 && selectedAppIndex > 0) {  // Left (slow)
+                    if (stickX < -0.2 && currentTime - lastInputTime > inputBufferTime && selectedAppIndex > 0) {  // Left (slow)
                         selectedAppIndex--;
-                    } else if (stickX > 0.2 && selectedAppIndex < apps.length - 1) {  // Right (slow)
+                        lastInputTime = currentTime;
+                    } else if (stickX > 0.2 && currentTime - lastInputTime > inputBufferTime && selectedAppIndex < apps.length - 1) {  // Right (slow)
                         selectedAppIndex++;
+                        lastInputTime = currentTime;
                     }
                 }
 
                 // Select app with X button (PlayStation)
-                if (gp.buttons[0].pressed) selectApp();  // X Button
+                if (gp.buttons[0].pressed && currentTime - lastInputTime > inputBufferTime) {  // X Button
+                    selectApp();
+                    lastInputTime = currentTime;
+                }
 
                 // Highlight app
                 highlightApp();
