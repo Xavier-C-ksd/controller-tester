@@ -59,9 +59,24 @@
             background-color: #00aaff;
             color: #000;
         }
+
+        #notification {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #222;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
     </style>
 </head>
 <body>
+    <div id="notification">Controller Connected</div>
     <div id="ui">
         <div class="app" data-link="https://example.com/app1">App 1</div>
         <div class="app" data-link="https://example.com/app2">App 2</div>
@@ -74,6 +89,7 @@
         let selectedAppIndex = 0;
         let lastInputTime = 0;
         const inputBufferTime = 150;
+        const notification = document.getElementById('notification');
 
         const highlightApp = () => {
             apps.forEach(app => app.classList.remove('highlighted'));
@@ -84,6 +100,22 @@
             const appLink = apps[selectedAppIndex].getAttribute('data-link');
             if (appLink) window.location.href = appLink;
         };
+
+        const showNotification = (message) => {
+            notification.textContent = message;
+            notification.style.opacity = 1;
+            setTimeout(() => {
+                notification.style.opacity = 0;
+            }, 2000);
+        };
+
+        window.addEventListener("gamepadconnected", (event) => {
+            showNotification("Controller Connected");
+        });
+
+        window.addEventListener("gamepaddisconnected", (event) => {
+            showNotification("Controller Disconnected");
+        });
 
         const navigateWithController = () => {
             const gamepads = navigator.getGamepads();
